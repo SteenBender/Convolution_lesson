@@ -75,7 +75,7 @@ def get_preset_kernel(kernel_name, size=3):
         }
     elif size == 5:
         kernels = {
-            "Identity": np.eye(5),
+            "Identity": np.logical_and(np.eye(size), np.eye(size)[::-1]),
             "Edge Detection": np.array(
                 [
                     [-1, -1, -1, -1, -1],
@@ -135,7 +135,7 @@ def get_preset_kernel(kernel_name, size=3):
         }
     elif size == 7:
         kernels = {
-            "Identity": np.eye(7),
+            "Identity": np.logical_and(np.eye(size), np.eye(size)[::-1]),
             "Edge Detection": np.ones((7, 7)) * -1,
             "Sharpen": np.ones((7, 7)) * -1,
             "Box Blur": np.ones((7, 7)) / 49,
@@ -190,7 +190,7 @@ def get_preset_kernel(kernel_name, size=3):
     else:
         center = size // 2
         kernels = {
-            "Identity": np.eye(size),
+            "Identity": np.logical_and(np.eye(size), np.eye(size)[::-1]),
             "Edge Detection": np.ones((size, size)) * -1,
             "Sharpen": np.ones((size, size)) * -1,
             "Box Blur": np.ones((size, size)) / (size * size),
