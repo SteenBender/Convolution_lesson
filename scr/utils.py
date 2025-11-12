@@ -27,7 +27,7 @@ def load_image_from_path(image_path, max_size=512):
     return np.array(img) / 255.0
 
 
-def get_available_images(data_folder="../data/img"):
+def get_available_images(data_folder="data/img"):
     if os.path.exists(data_folder):
         images = [
             f
