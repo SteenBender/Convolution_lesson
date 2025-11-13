@@ -224,8 +224,26 @@ def plot_convolution_result(original_image, kernel, ax1, ax2):
 def create_convolution_widget(original_image):
     import ipywidgets as widgets
     from IPython.display import display
+    import io
 
     output = widgets.Output()
+    current_image = original_image
+
+    # Image selector widgets
+    image_selector = widgets.Dropdown(
+        options=["Generated Sample"] + get_available_images(),
+        value="Generated Sample",
+        description="Image:",
+        style={"description_width": "80px"},
+        layout=widgets.Layout(width="300px"),
+    )
+
+    upload_button = widgets.FileUpload(
+        accept="image/*",
+        description="Upload Image",
+        multiple=False,
+        layout=widgets.Layout(width="200px"),
+    )
 
     kernel_size_dropdown = widgets.Dropdown(
         options=[3, 5, 7, 9, 11],
@@ -321,7 +339,7 @@ def create_convolution_widget(original_image):
         with output:
             output.clear_output(wait=True)
             fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
-            plot_convolution_result(original_image, kernel, ax1, ax2)
+            plot_convolution_result(current_image, kernel, ax1, ax2)
             plt.tight_layout()
             plt.show()
 
@@ -422,13 +440,39 @@ def create_convolution_widget(original_image):
         elif change["new"] == "Individual Boxes":
             kernel_editor.children = [grid_container]
 
+    def on_image_change(change):
+        nonlocal current_image
+        if change["new"] == "Generated Sample":
+            current_image = load_sample_image()
+        else:
+            image_path = f"data/img/{change['new']}"
+            current_image = load_image_from_path(image_path)
+        update_plot()
+
+    def on_upload(change):
+        nonlocal current_image
+        if len(upload_button.value) > 0:
+            uploaded_file = upload_button.value[0]
+            content = io.BytesIO(uploaded_file["content"])
+            img = Image.open(content).convert("L")
+            img.thumbnail((512, 512), Image.Resampling.LANCZOS)
+            current_image = np.array(img) / 255.0
+            update_plot()
+
     preset_dropdown.observe(on_preset_change, names="value")
     kernel_text.observe(on_text_change, names="value")
     fill_button.on_click(on_fill_button_click)
     kernel_size_dropdown.observe(on_size_change, names="value")
     input_mode_dropdown.observe(on_input_mode_change, names="value")
+    image_selector.observe(on_image_change, names="value")
+    upload_button.observe(on_upload, names="value")
 
     initial_grid = create_kernel_grid(3)
+
+    image_selector_row = widgets.HBox(
+        [image_selector, upload_button],
+        layout=widgets.Layout(gap="20px", justify_content="center"),
+    )
 
     top_controls = widgets.HBox(
         [kernel_size_dropdown, preset_dropdown, fill_all, fill_button],
@@ -460,6 +504,8 @@ def create_convolution_widget(original_image):
     display(
         widgets.VBox(
             [
+                image_selector_row,
+                widgets.HTML("<br>"),
                 top_controls,
                 widgets.HTML("<br>"),
                 input_mode_row,
