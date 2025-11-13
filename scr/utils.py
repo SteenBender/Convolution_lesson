@@ -452,7 +452,12 @@ def create_convolution_widget(original_image):
     def on_upload(change):
         nonlocal current_image
         if len(upload_button.value) > 0:
-            uploaded_file = upload_button.value[0]
+            # Handle both dict (Colab) and tuple (local) formats
+            if isinstance(upload_button.value, dict):
+                uploaded_file = list(upload_button.value.values())[0]
+            else:
+                uploaded_file = upload_button.value[0]
+
             content = io.BytesIO(uploaded_file["content"])
             img = Image.open(content).convert("L")
             img.thumbnail((512, 512), Image.Resampling.LANCZOS)
